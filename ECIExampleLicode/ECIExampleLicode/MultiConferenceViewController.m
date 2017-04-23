@@ -40,6 +40,8 @@ static CGFloat vHeight = 120.0;
     
     // Setup navigation
     self.tabBarItem.image = [UIImage imageNamed:@"Group-Selected"];
+    self.title = self.roomId;
+    self.navigationController.navigationBar.topItem.title = @"Back";
     
     // Access to local camera
     [self initializeLocalStream];
@@ -71,6 +73,20 @@ static CGFloat vHeight = 120.0;
         RTCVideoTrack *videoTrack = [localStream.mediaStream.videoTracks objectAtIndex:0];
         [videoTrack addRenderer:_localView];
     }
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self.navigationController setNavigationBarHidden:NO animated:YES];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [self.navigationController setNavigationBarHidden:YES animated:YES];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
 }
 
 # pragma mark - ECRoomDelegate
