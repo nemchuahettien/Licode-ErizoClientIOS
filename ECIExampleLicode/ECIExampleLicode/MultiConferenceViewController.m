@@ -14,7 +14,6 @@
 #import "Nuve.h"
 #import "ErizoClient.h"
 
-static NSString *roomId = @"59de889a35189661b58017a1";
 static NSString *roomName = @"IOS Demo APP";
 static NSString *kDefaultUserName = @"ErizoIOS";
 
@@ -179,18 +178,19 @@ static CGFloat vHeight = 120.0;
 # pragma mark - UI Actions
 
 - (IBAction)connect:(id)sender {
-    if (!localStream) {
-        [self initializeLocalStream];
-    }
     
-    NSString *username = kDefaultUserName;
-    [self showCallConnectViews:NO
-           updateStatusMessage:@"Connecting with the room..."];
+    NSString *username = self.inputUsername.text;
+    [self showCallConnectViews:NO updateStatusMessage:@"Connecting with the room..."];
     
-    // Initialize room (without token!)
-    remoteRoom = [[ECRoom alloc] initWithDelegate:self
-                                   andPeerFactory:[[RTCPeerConnectionFactory alloc] init]];
-    
+    [[LicodeServer sharedInstance] obtainMultiVideoConferenceToken:username
+                                                        completion:^(BOOL result, NSString *token) {
+                                                            if (result) {
+                                                                // Connect with the Room
+                                                                [remoteRoom createSignalingChannelWithEncodedToken:token];
+                                                            } else {
+                                                                [self showCallConnectViews:YES updateStatusMessage:@"Token fetch failed"];
+                                                            }
+                                                        }];
     /*
      
      Method 1: Chotis example:
@@ -206,7 +206,7 @@ static CGFloat vHeight = 120.0;
      completion:^(BOOL result, NSString *token) {
      if (result) {
      // Connect with the Room
-     [remoteRoom connectWithEncodedToken:token];
+     [remoteRoom createSignalingChannelWithEncodedToken:token];
      } else {
      [self showCallConnectViews:YES updateStatusMessage:@"Token fetch failed"];
      }
@@ -223,34 +223,37 @@ static CGFloat vHeight = 120.0;
      to create one if not exists.
      
      
-     
      [[Nuve sharedInstance] createTokenForTheFirstAvailableRoom:nil
      roomType:RoomTypeMCU
      username:username
      create:YES
      completion:^(BOOL success, NSString *token) {
      if (success) {
-     [remoteRoom connectWithEncodedToken:token];
+     [remoteRoom createSignalingChannelWithEncodedToken:token];
      } else {
      [self showCallConnectViews:YES
      updateStatusMessage:@"Error!"];
      }
      }];
-     
+     */
+    
+    /*
      
      Method 2.2: Create a token for a given room id.
+     
+     [[Nuve sharedInstance] createTokenForRoomId:self.roomId
+     username:username
+     role:kLicodePresenterRole
+     completion:^(BOOL success, NSString *token) {
+     if (success) {
+     [remoteRoom createSignalingChannelWithEncodedToken:token];
+     } else {
+     [self showCallConnectViews:YES
+     updateStatusMessage:@"Error!"];
+     }
+     }];
      */
-    [[Nuve sharedInstance] createTokenForRoomId:roomId
-                                       username:username
-                                           role:kLicodePresenterRole
-                                     completion:^(BOOL success, NSString *token) {
-                                         if (success) {
-                                             [remoteRoom connectWithEncodedToken:token];
-                                         } else {
-                                             [self showCallConnectViews:YES
-                                                    updateStatusMessage:@"Error!"];
-                                         }
-                                     }];
+    
     /*
      Method 2.3: Create a Room and then create a Token.
      
@@ -259,34 +262,15 @@ static CGFloat vHeight = 120.0;
      username:username
      completion:^(BOOL success, NSString *token) {
      if (success) {
-     [remoteRoom connectWithEncodedToken:token];
+     [remoteRoom createSignalingChannelWithEncodedToken:token];
      } else {
      [self showCallConnectViews:YES
      updateStatusMessage:@"Error!"];
      }
      }];
      */
-    
 }
 
-- (IBAction)leave:(id)sender {
-    for (ECStream *stream in remoteRoom.remoteStreams) {
-        [self removeStream:stream.streamId];
-    }
-    [remoteRoom leave];
-    remoteRoom = nil;
-    [self showCallConnectViews:YES updateStatusMessage:@"Ready"];
-}
-
-- (IBAction)unpublish:(id)sender {
-    if (localStream) {
-        [remoteRoom unpublish];
-    } else {
-        [self initializeLocalStream];
-        [remoteRoom publish:localStream];
-        [self.unpublishButton setTitle:@"UnPublish" forState:UIControlStateNormal];
-    }
-}
 
 - (void)didTapLabelWithGesture:(UITapGestureRecognizer *)tapGesture {
     NSDictionary *data = @{
