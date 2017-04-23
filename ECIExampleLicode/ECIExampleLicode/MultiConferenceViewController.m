@@ -182,15 +182,15 @@ static CGFloat vHeight = 120.0;
     NSString *username = self.inputUsername.text;
     [self showCallConnectViews:NO updateStatusMessage:@"Connecting with the room..."];
     
-    [[LicodeServer sharedInstance] obtainMultiVideoConferenceToken:username
-                                                        completion:^(BOOL result, NSString *token) {
-                                                            if (result) {
-                                                                // Connect with the Room
-                                                                [remoteRoom connectWithEncodedToken:token];
-                                                            } else {
-                                                                [self showCallConnectViews:YES updateStatusMessage:@"Token fetch failed"];
-                                                            }
-                                                        }];
+    [[LicodeServer sharedInstance] obtainMultiVideoConferenceToken:self.roomId forUser:username
+            completion:^(BOOL result, NSString *token) {
+            if (result) {
+                // Connect with the Room
+                [remoteRoom connectWithEncodedToken:token];
+            } else {
+                [self showCallConnectViews:YES updateStatusMessage:@"Token fetch failed"];
+            }
+    }];
     /*
      
      Method 1: Chotis example:
