@@ -16,4 +16,6 @@
                                 forUser:(NSString *)username
                              completion:(void (^)(BOOL, NSString *))completion;
 
+@property (nonatomic, assign) BOOL isLive;
+
 @end

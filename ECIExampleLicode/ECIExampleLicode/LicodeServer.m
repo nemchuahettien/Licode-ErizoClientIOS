@@ -14,6 +14,7 @@
 @end
 
 static NSString *kLicodeServerURLString = @"https://video.cpvpc.com/token";
+static NSString *kLicodeServerLiveURLString = @"https://www_video.cpvpc.com/token";
 static NSString *kLicodeServerTokenJSONNameSpace = @"";
 static NSString *kLicodeServerTokenJSONField = @"";
 
@@ -36,9 +37,17 @@ static NSString *kLicodeServerTokenJSONField = @"";
 							   @"roomId": roomId,
 							   @"username": username
 							   };
-	NSMutableURLRequest *request = [self buildRequest:kLicodeServerURLString method:@"POST" postData:postData];
-	
-    NSURL* url = [NSURL URLWithString:kLicodeServerURLString];
+    NSString *urlString;
+    if (self.isLive) {
+        urlString = kLicodeServerLiveURLString;
+    }
+    else {
+        urlString = kLicodeServerURLString;
+    }
+    
+	NSMutableURLRequest *request = [self buildRequest:urlString method:@"POST" postData:postData];
+    
+    NSURL* url = [NSURL URLWithString:urlString];
 	[NSURLRequest setAllowsAnyHTTPSCertificate:YES forHost:[url host]];
     
     [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue]
