@@ -85,10 +85,6 @@ static CGFloat vHeight = 120.0;
     [self.navigationController setNavigationBarHidden:YES animated:YES];
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-}
-
 # pragma mark - ECRoomDelegate
 
 - (void)room:(ECRoom *)room didError:(ECRoomErrorStatus)status reason:(NSString *)reason {
