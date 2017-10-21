@@ -15,6 +15,7 @@
 
 @property (weak, nonatomic) IBOutlet UITextField *inputUsername;
 @property (weak, nonatomic) IBOutlet UIButton *connectButton;
+@property (weak, nonatomic) IBOutlet UIButton *leaveButton;
 @property (weak, nonatomic) IBOutlet RTCEAGLVideoView *localView;
 @property (weak, nonatomic) IBOutlet UILabel *statusLabel;
 

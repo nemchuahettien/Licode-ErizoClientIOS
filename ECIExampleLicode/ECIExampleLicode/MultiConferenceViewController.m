@@ -136,7 +136,7 @@ static CGFloat vHeight = 120.0;
 
 
 - (void)room:(ECRoom *)room didPublishStream:(ECStream *)stream {
-    [self.unpublishButton setTitle:@"UnPublish" forState:UIControlStateNormal];
+//    [self.unpublishButton setTitle:@"UnPublish" forState:UIControlStateNormal];
     [self showCallConnectViews:NO
            updateStatusMessage:[NSString stringWithFormat:@"Published with ID: %@", stream.streamId]];
 }
@@ -160,7 +160,7 @@ static CGFloat vHeight = 120.0;
 - (void)room:(ECRoom *)room didUnpublishStream:(ECStream *)stream {
     dispatch_async(dispatch_get_main_queue(), ^{
         localStream = nil;
-        [_unpublishButton setTitle:@"Publish" forState:UIControlStateNormal];
+//        [_unpublishButton setTitle:@"Publish" forState:UIControlStateNormal];
     });
 }
 
@@ -186,7 +186,7 @@ static CGFloat vHeight = 120.0;
                                                         completion:^(BOOL result, NSString *token) {
                                                             if (result) {
                                                                 // Connect with the Room
-                                                                [remoteRoom createSignalingChannelWithEncodedToken:token];
+                                                                [remoteRoom connectWithEncodedToken:token];
                                                             } else {
                                                                 [self showCallConnectViews:YES updateStatusMessage:@"Token fetch failed"];
                                                             }
@@ -418,8 +418,29 @@ static CGFloat vHeight = 120.0;
 		self.statusLabel.text = statusMessage;
 		self.connectButton.hidden = !show;
         self.leaveButton.hidden = show;
-        self.unpublishButton.hidden = show;
+//        self.unpublishButton.hidden = show;
 	});
+}
+
+-(void)unpublish:(id)sender {
+    if (localStream) {
+        [remoteRoom unpublish];
+    } else {
+        [self initializeLocalStream];
+        [remoteRoom publish:localStream];
+//        [self.unpublishButton setTitle:@"UnPublish" forState:UIControlStateNormal];
+    }
+
+}
+
+-(void)leave:(id)sender {
+    for (ECStream *stream in remoteRoom.remoteStreams) {
+        [self removeStream:stream.streamId];
+    }
+    [remoteRoom leave];
+    remoteRoom = nil;
+    [self showCallConnectViews:YES updateStatusMessage:@"Ready"];
+
 }
 
 @end
