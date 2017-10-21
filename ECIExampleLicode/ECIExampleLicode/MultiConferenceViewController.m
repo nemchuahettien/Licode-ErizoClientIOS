@@ -100,12 +100,6 @@ static CGFloat vHeight = 120.0;
     }
 }
 
-- (void)room:(ECRoom *)room didPublishStream:(ECStream *)stream {
-    [self.unpublishButton setTitle:@"UnPublish" forState:UIControlStateNormal];
-	[self showCallConnectViews:NO
-           updateStatusMessage:[NSString stringWithFormat:@"Published with ID: %@", stream.streamId]];
-}
-
 - (void)room:(ECRoom *)room didSubscribeStream:(ECStream *)stream {
 	[self showCallConnectViews:NO
            updateStatusMessage:[NSString stringWithFormat:@"Subscribed: %@", stream.streamId]];
@@ -118,28 +112,51 @@ static CGFloat vHeight = 120.0;
     [self removeStream:stream.streamId];
 }
 
+- (void)room:(ECRoom *)room didChangeStatus:(ECRoomStatus)status {
+    switch (status) {
+            case ECRoomStatusDisconnected:
+            [self showCallConnectViews:YES updateStatusMessage:@"Room Disconnected"];
+            break;
+        default:
+            break;
+    }
+}
+
 - (void)room:(ECRoom *)room didAddedStream:(ECStream *)stream {
     // We subscribe to all streams added.
-	[self showCallConnectViews:NO
+    [self showCallConnectViews:NO
            updateStatusMessage:[NSString stringWithFormat:@"Subscribing stream: %@", stream.streamId]];
-
+    
     [remoteRoom subscribe:stream];
 }
 
+
+- (void)room:(ECRoom *)room didFailStartRecordingStream:(ECStream *)stream withErrorMsg:(NSString *)errorMsg {
+    
+}
+
+
+- (void)room:(ECRoom *)room didPublishStream:(ECStream *)stream {
+    [self.unpublishButton setTitle:@"UnPublish" forState:UIControlStateNormal];
+    [self showCallConnectViews:NO
+           updateStatusMessage:[NSString stringWithFormat:@"Published with ID: %@", stream.streamId]];
+}
+
+
+- (void)room:(ECRoom *)room didReceiveData:(NSDictionary *)data fromStream:(ECStream *)stream {
+    L_INFO(@"received data stream %@ %@\n", stream.streamId, data);
+}
+
+
 - (void)room:(ECRoom *)room didRemovedStream:(ECStream *)stream {
-	[self removeStream:stream.streamId];
+    [self removeStream:stream.streamId];
 }
 
-- (void)room:(ECRoom *)room didStartRecordingStream:(ECStream *)stream
-                                    withRecordingId:(NSString *)recordingId
-                                      recordingDate:(NSDate *)recordingDate {
-    // TODO
+
+- (void)room:(ECRoom *)room didStartRecordingStream:(ECStream *)stream withRecordingId:(NSString *)recordingId recordingDate:(NSDate *)recordingDate {
+    
 }
 
-- (void)room:(ECRoom *)room didFailStartRecordingStream:(ECStream *)stream
-                                           withErrorMsg:(NSString *)errorMsg {
-    // TODO
-}
 
 - (void)room:(ECRoom *)room didUnpublishStream:(ECStream *)stream {
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -148,28 +165,15 @@ static CGFloat vHeight = 120.0;
     });
 }
 
-- (void)room:(ECRoom *)room didChangeStatus:(ECRoomStatus)status {
-    switch (status) {
-        case ECRoomStatusDisconnected:
-            [self showCallConnectViews:YES updateStatusMessage:@"Room Disconnected"];
-            break;
-        default:
-            break;
-    }
-}
-
-- (void)room:(ECRoom *)room didReceiveData:(NSDictionary *)data fromStream:(ECStream *)stream {
-	L_INFO(@"received data stream %@ %@\n", stream.streamId, data);
-}
 
 - (void)room:(ECRoom *)room didUpdateAttributesOfStream:(ECStream *)stream {
-	L_INFO(@"updated attributes stream %@ %@\n", stream.streamId, stream.streamAttributes);
+    L_INFO(@"updated attributes stream %@ %@\n", stream.streamId, stream.streamAttributes);
 }
 
 # pragma mark - RTCEAGLVideoViewDelegate
 
 - (void)videoView:(RTCEAGLVideoView*)videoView didChangeVideoSize:(CGSize)size {
-	L_INFO(@"Change %p %f %f", videoView, size.width, size.height);
+    L_INFO(@"Change %p %f %f", videoView, size.width, size.height);
 }
 
 # pragma mark - UI Actions
@@ -178,91 +182,91 @@ static CGFloat vHeight = 120.0;
     if (!localStream) {
         [self initializeLocalStream];
     }
-
+    
     NSString *username = kDefaultUserName;
-	[self showCallConnectViews:NO
+    [self showCallConnectViews:NO
            updateStatusMessage:@"Connecting with the room..."];
-
+    
     // Initialize room (without token!)
     remoteRoom = [[ECRoom alloc] initWithDelegate:self
                                    andPeerFactory:[[RTCPeerConnectionFactory alloc] init]];
-
+    
     /*
-
-    Method 1: Chotis example:
-    =========================
-
-    Obtains a token from official Licode demo servers.
-    This method is useful if you don't have a custom Licode deployment and
-    want to try it. Keep in mind that many times demo servers are down or
-    with self-signed or expired certificates.
-    You might need to update room ID on LicodeServer.m file.
-
-    [[LicodeServer sharedInstance] obtainMultiVideoConferenceToken:username
-            completion:^(BOOL result, NSString *token) {
-			if (result) {
-				// Connect with the Room
-				[remoteRoom connectWithEncodedToken:token];
-			} else {
-				[self showCallConnectViews:YES updateStatusMessage:@"Token fetch failed"];
-			}
-    }];
-
-    Method 2: Connect with Nuve directly without middle server API:
-    ===============================================================
-
-    The following methods are recommended if you already have your own
-    Licode deployment. Check Nuve.h for sub-API details.
-
-
-    Method 2.1: Create token for the first room name/type available with the posibility
-                to create one if not exists.
-
-
-
-    [[Nuve sharedInstance] createTokenForTheFirstAvailableRoom:nil
-                                                      roomType:RoomTypeMCU
-                                                      username:username
-                                                        create:YES
-                                                    completion:^(BOOL success, NSString *token) {
-                                                        if (success) {
-                                                            [remoteRoom connectWithEncodedToken:token];
-                                                        } else {
-                                                            [self showCallConnectViews:YES
-                                                                   updateStatusMessage:@"Error!"];
-                                                        }
-                                                    }];
-
-
-    Method 2.2: Create a token for a given room id.
-    */
+     
+     Method 1: Chotis example:
+     =========================
+     
+     Obtains a token from official Licode demo servers.
+     This method is useful if you don't have a custom Licode deployment and
+     want to try it. Keep in mind that many times demo servers are down or
+     with self-signed or expired certificates.
+     You might need to update room ID on LicodeServer.m file.
+     
+     [[LicodeServer sharedInstance] obtainMultiVideoConferenceToken:username
+     completion:^(BOOL result, NSString *token) {
+     if (result) {
+     // Connect with the Room
+     [remoteRoom connectWithEncodedToken:token];
+     } else {
+     [self showCallConnectViews:YES updateStatusMessage:@"Token fetch failed"];
+     }
+     }];
+     
+     Method 2: Connect with Nuve directly without middle server API:
+     ===============================================================
+     
+     The following methods are recommended if you already have your own
+     Licode deployment. Check Nuve.h for sub-API details.
+     
+     
+     Method 2.1: Create token for the first room name/type available with the posibility
+     to create one if not exists.
+     
+     
+     
+     [[Nuve sharedInstance] createTokenForTheFirstAvailableRoom:nil
+     roomType:RoomTypeMCU
+     username:username
+     create:YES
+     completion:^(BOOL success, NSString *token) {
+     if (success) {
+     [remoteRoom connectWithEncodedToken:token];
+     } else {
+     [self showCallConnectViews:YES
+     updateStatusMessage:@"Error!"];
+     }
+     }];
+     
+     
+     Method 2.2: Create a token for a given room id.
+     */
     [[Nuve sharedInstance] createTokenForRoomId:roomId
                                        username:username
                                            role:kLicodePresenterRole
                                      completion:^(BOOL success, NSString *token) {
                                          if (success) {
-                                            [remoteRoom connectWithEncodedToken:token];
+                                             [remoteRoom connectWithEncodedToken:token];
                                          } else {
                                              [self showCallConnectViews:YES
                                                     updateStatusMessage:@"Error!"];
                                          }
                                      }];
     /*
-    Method 2.3: Create a Room and then create a Token.
-
-    [[Nuve sharedInstance] createRoomAndCreateToken:roomName
-                                           roomType:RoomTypeMCU
-                                           username:username
-                                              completion:^(BOOL success, NSString *token) {
-                                             if (success) {
-                                                 [remoteRoom connectWithEncodedToken:token];
-                                             } else {
-                                                 [self showCallConnectViews:YES
-                                                        updateStatusMessage:@"Error!"];
-                                             }
-                                         }];
-        */
-
+     Method 2.3: Create a Room and then create a Token.
+     
+     [[Nuve sharedInstance] createRoomAndCreateToken:roomName
+     roomType:RoomTypeMCU
+     username:username
+     completion:^(BOOL success, NSString *token) {
+     if (success) {
+     [remoteRoom connectWithEncodedToken:token];
+     } else {
+     [self showCallConnectViews:YES
+     updateStatusMessage:@"Error!"];
+     }
+     }];
+     */
+    
 }
 
 - (IBAction)leave:(id)sender {
@@ -285,18 +289,18 @@ static CGFloat vHeight = 120.0;
 }
 
 - (void)didTapLabelWithGesture:(UITapGestureRecognizer *)tapGesture {
-	NSDictionary *data = @{
-						   @"name": kDefaultUserName,
-						   @"msg": @"my test message in licode chat room"
-						   };
-	[localStream sendData:data];
-	
-	NSDictionary *attributes = @{
-						   @"name": kDefaultUserName,
-						   @"actualName": kDefaultUserName,
-						   @"type": @"public",
-						   };
-	[localStream setAttributes:attributes];
+    NSDictionary *data = @{
+                           @"name": kDefaultUserName,
+                           @"msg": @"my test message in licode chat room"
+                           };
+    [localStream sendData:data];
+    
+    NSDictionary *attributes = @{
+                                 @"name": kDefaultUserName,
+                                 @"actualName": kDefaultUserName,
+                                 @"type": @"public",
+                                 };
+    [localStream setAttributes:attributes];
 }
 
 - (void)closeStream:(id)sender {
@@ -307,6 +311,46 @@ static CGFloat vHeight = 120.0;
         }
     }
 }
+
+//- (void)traitCollectionDidChange:(nullable UITraitCollection *)previousTraitCollection {
+//    <#code#>
+//}
+//
+//- (void)preferredContentSizeDidChangeForChildContentContainer:(nonnull id<UIContentContainer>)container {
+//    <#code#>
+//}
+//
+//- (CGSize)sizeForChildContentContainer:(nonnull id<UIContentContainer>)container withParentContainerSize:(CGSize)parentSize {
+//    <#code#>
+//}
+//
+//- (void)systemLayoutFittingSizeDidChangeForChildContentContainer:(nonnull id<UIContentContainer>)container {
+//    <#code#>
+//}
+//
+//- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(nonnull id<UIViewControllerTransitionCoordinator>)coordinator {
+//    <#code#>
+//}
+//
+//- (void)willTransitionToTraitCollection:(nonnull UITraitCollection *)newCollection withTransitionCoordinator:(nonnull id<UIViewControllerTransitionCoordinator>)coordinator {
+//    <#code#>
+//}
+//
+//- (void)didUpdateFocusInContext:(nonnull UIFocusUpdateContext *)context withAnimationCoordinator:(nonnull UIFocusAnimationCoordinator *)coordinator {
+//    <#code#>
+//}
+//
+//- (void)setNeedsFocusUpdate {
+//    <#code#>
+//}
+//
+//- (BOOL)shouldUpdateFocusInContext:(nonnull UIFocusUpdateContext *)context {
+//    <#code#>
+//}
+//
+//- (void)updateFocusIfNeeded {
+//    <#code#>
+//}
 
 # pragma mark - UITextFieldDelegate
 
