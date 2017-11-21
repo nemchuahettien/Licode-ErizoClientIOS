@@ -12,10 +12,8 @@
 
 + (instancetype)sharedInstance;
 
-- (void)obtainMultiVideoConferenceToken:(NSString *)roomId
-                                forUser:(NSString *)username
-                             completion:(void (^)(BOOL, NSString *))completion;
-
-@property (nonatomic, assign) BOOL isLive;
+- (void)obtainMultiVideoConferenceToken:(NSString *)username
+                                 roomId:(NSString *)roomId
+                             completion:(void(^)(BOOL result, NSString *token))completion;
 
 @end

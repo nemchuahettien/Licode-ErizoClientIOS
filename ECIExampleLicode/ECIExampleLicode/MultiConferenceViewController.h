@@ -7,19 +7,16 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "ECRoom.h"
-
 @import WebRTC;
+#import "ECRoom.h"
 
 @interface MultiConferenceViewController : UIViewController <ECRoomDelegate>
 
-@property (weak, nonatomic) IBOutlet UITextField *inputUsername;
-@property (weak, nonatomic) IBOutlet UIButton *connectButton;
-@property (weak, nonatomic) IBOutlet UIButton *leaveButton;
-@property (weak, nonatomic) IBOutlet RTCEAGLVideoView *localView;
-@property (weak, nonatomic) IBOutlet UILabel *statusLabel;
-
-@property (strong, nonatomic) NSString *roomId;
+@property (strong, nonatomic) IBOutlet UIButton *connectButton;
+@property (strong, nonatomic) IBOutlet UIButton *leaveButton;
+@property (strong, nonatomic) IBOutlet UIButton *unpublishButton;
+@property (strong, nonatomic) IBOutlet RTCEAGLVideoView *localView;
+@property (strong, nonatomic) IBOutlet UILabel *statusLabel;
 
 - (IBAction)connect:(id)sender;
 - (IBAction)leave:(id)sender;

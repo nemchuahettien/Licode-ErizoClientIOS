@@ -13,8 +13,8 @@
 	+(void)setAllowsAnyHTTPSCertificate:(BOOL) allow forHost:(NSString*) host;
 @end
 
-static NSString *kLicodeServerURLString = @"https://video.cpvpc.com/token";
-static NSString *kLicodeServerLiveURLString = @"https://www_video.cpvpc.com/token";
+static NSString *kLicodeServerURLString = @"https://test2.cpvpc.com/token";
+static NSString *kLicodeRoomId = @"58eb275d01ad3c1dda4e0c45";
 static NSString *kLicodeServerTokenJSONNameSpace = @"";
 static NSString *kLicodeServerTokenJSONField = @"";
 
@@ -29,25 +29,15 @@ static NSString *kLicodeServerTokenJSONField = @"";
     return sharedInstance;
 }
 
-- (void)obtainMultiVideoConferenceToken:(NSString *)roomId
-                                forUser:(NSString *)username
-                             completion:(void (^)(BOOL, NSString *))completion {
+- (void)obtainMultiVideoConferenceToken:(NSString *)username roomId:(NSString *)roomId completion:(void (^)(BOOL, NSString *))completion {
 	NSDictionary *postData = @{
 							   @"role": @"presenter",
 							   @"roomId": roomId,
 							   @"username": username
 							   };
-    NSString *urlString;
-    if (self.isLive) {
-        urlString = kLicodeServerLiveURLString;
-    }
-    else {
-        urlString = kLicodeServerURLString;
-    }
-    
-	NSMutableURLRequest *request = [self buildRequest:urlString method:@"POST" postData:postData];
-    
-    NSURL* url = [NSURL URLWithString:urlString];
+	NSMutableURLRequest *request = [self buildRequest:kLicodeServerURLString method:@"POST" postData:postData];
+	
+    NSURL* url = [NSURL URLWithString:kLicodeServerURLString];
 	[NSURLRequest setAllowsAnyHTTPSCertificate:YES forHost:[url host]];
     
     [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue]
